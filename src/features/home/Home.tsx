@@ -1,5 +1,5 @@
 import {NavBar} from "../../shared/NavBar";
-import {CSSProperties} from "react";
+// import {CSSProperties} from "react";
 
 export const Home = () => {
     return (
@@ -20,7 +20,7 @@ export const Home = () => {
 };
 
 const PortfolioStatusBar = () => {
-    let val: string = "--value";
+    // let val: string = "--value";
     return (
         <div className={"rounded-xl my-4 p-4 bg-teal-950 flex-row flex"}>
             <PortfolioStatusCard title="Portfolio Value" amount={"pending"}/>
@@ -40,7 +40,7 @@ const PortfolioStatusCard = ({title, amount}: { title: string, amount: string })
     return (
         <div className={"mx-4"}>
             <h1>{title}</h1>
-            <p>amount</p>
+            <p>{amount}</p>
         </div>
     )
 
@@ -65,9 +65,9 @@ const WatchList = () => {
         </div>
     )
 }
-const WatchListCard = () => {
-
-}
+// const WatchListCard = () => {
+//
+// }
 
 const PopularStock = () => {
     return (

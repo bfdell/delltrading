@@ -1,7 +1,4 @@
-import { Auth0Provider, useAuth0 } from '@auth0/auth0-react';
-
 export const Login = () => {
-    const { loginWithRedirect } = useAuth0();
 
     return (
         <div className="h-screen gap-0 flex">
@@ -30,7 +27,7 @@ export const Login = () => {
                         <span className="label-text-alt">Forgot password?</span>
                     </div>
                 </label>
-                <button onClick={() => loginWithRedirect()} className="mx-auto w-full max-w-md btn">Sign in</button>
+                <button className="mx-auto w-full max-w-md btn">Sign in</button>
 
                 <div className="mx-auto my-9 w-full max-w-md divider">or</div>
 
@@ -55,7 +52,8 @@ export const Login = () => {
                     </svg>
                     Sign in with Google
                 </button>
-                <div className="mx-auto text-xs mt-7">Don't have an account? <a href="#"
+                {/*todo: change a tag*/}
+                <div className="mx-auto text-xs mt-7">Don't have an account? <a href="http://localhost"
                                                                                 className="text-blue-500 hover:text-blue-700">Create
                     an Account</a></div>
             </div>
@@ -63,8 +61,8 @@ export const Login = () => {
     );
 };
 
-const LoginTitle = () => {
-    return (
-        <></>
-    );
-};
+// const LoginTitle = () => {
+//     return (
+//         <></>
+//     );
+// };
