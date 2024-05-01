@@ -1,4 +1,28 @@
+import {useAuth} from "../../core/UseAuth";
+import {useState} from "react";
+import {useNavigate} from "react-router-dom";
+
 export const SignUp = () => {
+    const {createUser} = useAuth();
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const navigate = useNavigate();
+
+    const createAccount = () => {
+        if (firstName !== '' && lastName !== '' && email !== '' && password !== '' && confirmPassword !== '') {
+            if (password === confirmPassword) {
+                createUser(firstName, lastName, email, password).then(() => {
+                    navigate('/home');
+                })
+            }
+        } else {
+            console.log("incorrect form fields");
+        }
+    }
+
     return (
         <div className="h-screen gap-0 flex">
             <div className={"w-2/5 h-max border-solid border-2"}>
@@ -11,14 +35,18 @@ export const SignUp = () => {
                         <div className="label">
                             <span className="label-text">First name</span>
                         </div>
-                        <input type="text" placeholder="First" className="input input-bordered w-full max-w-md"/>
+                        <input onChange={(e) => {
+                            setFirstName(e.target.value)
+                        }} type="text" placeholder="First" className="input input-bordered w-full max-w-md"/>
                     </label>
 
                     <label className="form-control ml-2.5 w-1/2 max-w-md">
                         <div className="label">
                             <span className="label-text">Last name</span>
                         </div>
-                        <input type="text" placeholder="Last" className="input input-bordered w-full max-w-md"/>
+                        <input onChange={(e) => {
+                            setLastName(e.target.value)
+                        }} type="text" placeholder="Last" className="input input-bordered w-full max-w-md"/>
                     </label>
                 </div>
 
@@ -26,14 +54,18 @@ export const SignUp = () => {
                     <div className="label">
                         <span className="label-text">Email</span>
                     </div>
-                    <input type="text" placeholder="email" className="input input-bordered w-full max-w-md"/>
+                    <input onChange={(e) => {
+                        setEmail(e.target.value)
+                    }} type="text" placeholder="email" className="input input-bordered w-full max-w-md"/>
                 </label>
 
                 <label className="mx-auto mt-4 form-control w-full max-w-md">
                     <div className="label">
                         <span className="label-text">Password</span>
                     </div>
-                    <input type="password" placeholder="password" className="input input-bordered w-full max-w-md"/>
+                    <input onChange={(e) => {
+                        setPassword(e.target.value)
+                    }} type="password" placeholder="password" className="input input-bordered w-full max-w-md"/>
                 </label>
 
 
@@ -41,7 +73,10 @@ export const SignUp = () => {
                     <div className="label">
                         <span className="label-text">Confirm password</span>
                     </div>
-                    <input type="password" placeholder="confirm password" className="input input-bordered w-full max-w-md"/>
+                    <input onChange={(e) => {
+                        setConfirmPassword(e.target.value)
+                    }} type="password" placeholder="confirm password"
+                           className="input input-bordered w-full max-w-md"/>
                     <div className="label my-.5">
                         <span
                             className="flex flex-row content-center items-center label-text-alt"><span
@@ -51,7 +86,7 @@ export const SignUp = () => {
                     </div>
                 </label>
 
-                <button className="mx-auto w-full max-w-md btn">Create Account</button>
+                <button onClick={createAccount} className="mx-auto w-full max-w-md btn">Create Account</button>
 
                 <div className="mx-auto my-9 w-full max-w-md divider">or</div>
 
@@ -76,9 +111,9 @@ export const SignUp = () => {
                     </svg>
                     Sign up with Google
                 </button>
-                <div className="mx-auto text-xs mt-7">Already have an account? <a href="#"
-                                                                                  className="text-blue-500 hover:text-blue-700">Sign
-                    in</a></div>
+                <div className="mx-auto text-xs mt-7">Already have an account? <span onClick={() => {
+                    navigate('/login');
+                }} className="text-blue-500 hover:text-blue-700">Sign in</span></div>
             </div>
         </div>
     );

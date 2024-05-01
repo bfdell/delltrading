@@ -1,19 +1,66 @@
 import React from 'react';
-import logo from './logo.svg';
+// import logo from './logo.svg';
 import './App.css';
 import {Login} from "./features/authentication/Login";
 import {SignUp} from "./features/authentication/SignUp";
-import {NavBar} from "./shared/NavBar";
+import {createBrowserRouter, RouterProvider, useNavigate, useLocation} from "react-router-dom";
+
+import {Home} from "./features/home/Home";
+// import {Graph} from "./features/portfolio/Portfolio";
+// import Test from "./Test";
+import {Profile} from "./features/profile/Profile";
+import {Compare} from "./features/compare/Compare";
+import {Simulations} from "./features/simulations/Simulations";
+import {Portfolio} from "./features/portfolio/Portfolio";
+import {RouteGuard} from "./core/RouteGuard";
 
 function App() {
+//todo: Create error boundary element
+    //todo: Conditional render of nav bar if logged in
+    const router = createBrowserRouter([
+        {
+            path: 'login',
+            element: (<RouteGuard><Login/></RouteGuard>)
+        },
+        {
+            path: 'signup',
+            element: (<RouteGuard><SignUp/></RouteGuard>)
+        },
+        {
+            path: '',
+            element: (<RouteGuard><Home/></RouteGuard>)
+        },
+        {
+            path: 'home',
+            element: (<RouteGuard><Home/></RouteGuard>)
+        },
+        {
+            path: 'portfolio',
+            element: (<RouteGuard><Portfolio/></RouteGuard>)
+        },
+        {
+            path: 'simulations',
+            element: (<RouteGuard><Simulations/></RouteGuard>)
+        },
+        {
+            path: 'compare',
+            element: (<RouteGuard><Compare/></RouteGuard>)
+        },
+        {
+            path: 'profile',
+            element: (<RouteGuard><Profile/></RouteGuard>)
+        },
+    ])
 
-
-    // TODO: FIX FLEX PROBLEM WITH GOING TO NEXT COLUMN
-    //Conditional render of nav bar if logged in
     return (
         <div>
-            <NavBar/>
-            <Login/>
+            <RouterProvider router={router}/>
+            {/*<NavBar/>*/}
+            {/*<Login/>*/}
+            {/*<Graph/>*/}
+            {/*<Portfolio width={600} height={600}/>*/}
+            {/*<MyStockList/>*/}
+            {/*<Test width={600} height={600}/>*/}
             {/*<SignUp />*/}
         </div>
         // <div className="App">

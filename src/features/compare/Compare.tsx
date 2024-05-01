@@ -1,10 +1,10 @@
 import {NavBar} from "../../shared/NavBar";
 
-export const Portfolio = () => {
+export const Compare = () => {
     return (
         <div>
             <NavBar/>
-            PORTFOLIO PENDING!!
+            COMPARE PENDING!!
         </div>
     );
 };

@@ -1,10 +1,10 @@
 import {NavBar} from "../../shared/NavBar";
 
-export const Portfolio = () => {
+export const Simulations = () => {
     return (
         <div>
             <NavBar/>
-            PORTFOLIO PENDING!!
+            SIMULATIONS PENDING!!
         </div>
     );
 };
