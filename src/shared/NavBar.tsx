@@ -1,10 +1,11 @@
 import {useNavigate} from "react-router-dom";
 import {PropsWithChildren} from "react";
 import {UserIcon} from "@heroicons/react/24/solid";
-import {useAuth} from "../core/UseAuth";
+import {useCurrentUser} from "../core/useCurrentUser";
 
+//todo: ADD DIFFERNT BACKGROUND CLOR TO SHOW ACTIVE TAB...
 export const NavBar = () => {
-    const {displayName} = useAuth()
+    const {displayName} = useCurrentUser()
 
     return (
         <div className="navbar bg-base-100 flex justify-between space-x-14">
@@ -17,6 +18,7 @@ export const NavBar = () => {
             <NavBarLink pathName={'/profile'}>
                 <div className={"flex flex-row items-center"}>
                     <UserIcon className={"mr-2 size-9"}/>
+                    {/*//todo: put skeleton while loading on a refersh*/}
                     <span>{`${displayName.firstName} ${displayName.lastName}`}</span>
                 </div>
             </NavBarLink>

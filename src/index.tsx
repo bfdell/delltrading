@@ -5,21 +5,18 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import {DevSupport} from "@react-buddy/ide-toolbox";
 import {ComponentPreviews, useInitial} from "./dev";
-import {configFirebase} from "./firebaseConfig";
-
-const {firebaseApp, firestoreDB} = configFirebase();
 
 const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement
 );
 root.render(
-    <React.StrictMode>
-        <DevSupport ComponentPreviews={ComponentPreviews}
-                    useInitialHook={useInitial}
-        >
-            <App/>
-        </DevSupport>
-    </React.StrictMode>
+    // <React.StrictMode>
+    <DevSupport ComponentPreviews={ComponentPreviews}
+                useInitialHook={useInitial}
+    >
+        <App/>
+    </DevSupport>
+    // </React.StrictMode>
 )
 ;
 

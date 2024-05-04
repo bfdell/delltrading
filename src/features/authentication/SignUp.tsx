@@ -113,7 +113,7 @@ export const SignUp = () => {
                 </button>
                 <div className="mx-auto text-xs mt-7">Already have an account? <span onClick={() => {
                     navigate('/login');
-                }} className="text-blue-500 hover:text-blue-700">Sign in</span></div>
+                }} className="cursor-pointer text-blue-500 hover:text-blue-700">Sign in</span></div>
             </div>
         </div>
     );

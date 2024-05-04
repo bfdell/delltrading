@@ -1,56 +1,20 @@
-import React, {useState, useEffect, useMemo} from 'react';
-import {getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut} from "firebase/auth";
-import {collection, doc, getDoc, getDocs, setDoc, getFirestore} from "firebase/firestore";
-import {getApp} from 'firebase/app';
-import {NavigateFunction, useLocation, useNavigate} from "react-router-dom";
-import firebase from "firebase/compat/app";
-import {guardRoute} from "./RouteGuard";
-// import User = firebase.User;
+import {Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut} from "firebase/auth";
+import {doc, Firestore, setDoc} from "firebase/firestore";
+import {useFirebaseAuth} from "./FirebaseConfig";
 
-type UserNameInfo = {
-    firstName: string,
-    lastName: string,
-}
 export const useAuth = () => {
-    const navigate = useNavigate();
-    const location = useLocation();
-    const auth = useMemo(() => getAuth(), []);
-    const firestore = useMemo(() => getFirestore(getApp()), []);
-
-    const [user, setUser] = useState(auth.currentUser);
-    const [userInitialized, setUserInitialized] = useState(false);
-    const [displayName, setDisplayName] = useState<UserNameInfo>({firstName: '', lastName: ''});
-    //todo: Create useCache hook
-
-    useEffect(() => {
-        if (user != null) {
-            const docRef = doc(firestore, "users", user.uid);
-            getDoc(docRef).then((doc) => {
-                const names = doc.data();
-                setDisplayName({firstName: names?.firstName, lastName: names?.lastName});
-            })
-        }
-
-        // Cleanup on unmount
-        return auth.onAuthStateChanged((firebaseUser) => {
-            setUser(firebaseUser);
-            setUserInitialized(true)
-
-            //we have another call to guard route to handle case when page is refreshed
-            guardRoute(firebaseUser, navigate, location.pathname);
-        });
-
-    }, [user, firestore, userInitialized]);
+    const {firestoreDB, auth, user, userInitialized} = useFirebaseAuth()
 
     const createUser = async (firstName: string, lastName: string, email: string, password: string) => {
-        createUserWithEmailAndPassword(auth, email, password)
+        return createUserWithEmailAndPassword(auth as Auth, email, password)
             .then((userCredential) => {
                 // Signed up
                 const user = userCredential.user;
 
-                setDoc(doc(firestore, "users", user.uid), {
+                setDoc(doc(firestoreDB as Firestore, "users", user.uid), {
                     firstName: firstName,
                     lastName: lastName,
+                    cash: 100000,
 
                 }).then((result) => {
                     console.log(`set first and last name ${firstName} ${lastName} for new user`)
@@ -68,7 +32,7 @@ export const useAuth = () => {
             });
     }
     const signIn = async (email: string, password: string) => {
-        return signInWithEmailAndPassword(auth, email, password)
+        return signInWithEmailAndPassword(auth as Auth, email, password)
             .then((userCredential) => {
                 // Signed in
                 const user = userCredential.user;
@@ -81,7 +45,7 @@ export const useAuth = () => {
             });
     }
     const logout = async () => {
-        return signOut(auth).then(() => {
+        return signOut(auth as Auth).then(() => {
             // Sign-out successful.
             console.log("signout successful");
         }).catch((error) => {
@@ -90,5 +54,5 @@ export const useAuth = () => {
         });
     }
 
-    return {user, userInitialized, displayName, createUser, signIn, logout};
+    return {auth, user, userInitialized, createUser, signIn, logout};
 }
