@@ -24,11 +24,11 @@ export const SignUp = () => {
     }
 
     return (
-        <div className="h-screen gap-0 flex">
-            <div className={"w-2/5 h-max border-solid border-2"}>
-                LOGO HERE
+        <div className="h-screen gap-0 flex flex-row">
+            <div className={"w-2/5 h-full bg-blue-950"}>
+                BDELL TRADING
             </div>
-            <div className={"w-3/5 h-max justify-center flex flex-col border-solid border-2"}>
+            <div className={"w-3/5 h-max justify-center flex flex-col"}>
                 <h1 className={"text-5xl mb-16 mx-auto inset-0"}>BDell Trading</h1>
                 <div className={"flex flex-row mx-auto w-full max-w-md"}>
                     <label className="form-control mr-2.5 w-1/2 max-w-md">

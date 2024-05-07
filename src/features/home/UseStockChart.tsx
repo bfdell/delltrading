@@ -6,13 +6,13 @@ export const UseStockChart = () => {}
 // import {StockApiParams, fetchCurrentData, useStockAPI, useStockPriceAt} from "../../shared/UseStockAPI";
 // import {User} from 'firebase/auth'
 //
-// export type StockChartItem = {
-//     ticker: string,
-//     name: string,
-//     shares: number
-//     price: number,
-//     volume: number
-// }
+export type StockChartItem  ={
+    ticker: string,
+    name: string,
+    shares: number
+    price: number,
+    volume: number
+}
 //
 // export const useStockChart = () => {
 //     const {firestoreDB, user, userInitialized} = useFirebaseAuth();

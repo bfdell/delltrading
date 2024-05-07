@@ -26,9 +26,9 @@ export const Profile = () => {
     }
 
     return (
-        <div className={"w-screen"}>
+        <div>
             <NavBar/>
-            <div className={"mx-auto w-10/12"}>
+            <div className={"container mx-auto w-10/12"}>
                 <div className={"text-5xl font-bold mb-4"}>
                     {displayName.firstName} {displayName.lastName}
                 </div>

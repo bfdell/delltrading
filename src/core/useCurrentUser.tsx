@@ -1,9 +1,12 @@
 //todo: Move usename and password stuff to here
 
 import {useEffect, useState} from "react";
-import {doc, Firestore, getDoc} from "firebase/firestore";
-import {useFirebaseAuth, USERS_COLLECTION} from "./FirebaseConfig";
+import {collection, doc, Firestore, getDoc, setDoc} from "firebase/firestore";
+import {PORTFOLIO_COLLECTION, useFirebaseAuth, USERS_COLLECTION} from "./FirebaseConfig";
 import {USDollar} from "../shared/UseStockAPI";
+import {usePortfolio} from "../features/home/UsePortfolio";
+import {StockTickerData} from "../shared/StockUtils";
+import {User} from "firebase/auth";
 
 type UserNameInfo = {
     firstName: string,
@@ -17,10 +20,42 @@ export const useCurrentUser = () => {
     const [cashValue, setCashValue] = useState<number>(0);
     const [stockValue, setStockValue] = useState<number>(0);
     const [portfolioValue, setPortfolioValue] = useState<number>(0);
+    const [portfolioUpdated, setPortfolioUpdated] = useState(false);
 
     const calculateStockTotal = (): number => {
-        return 0;
+        let total = 0;
+        portfolio.forEach((stockAsset) => {
+            total += stockAsset.shares * stockAsset.price;
+        })
+        return total;
     }
+
+    const updatePortfolio = (stock: StockTickerData, shares: number) => {
+        console.log("REFRESHING")
+        console.log(stock);
+        const cost = stock.price * shares;
+        setCashValue(cashValue - cost);
+        setUserCash(cashValue - cost).then(() => {
+            setPortfolioUpdated(true);
+        });
+    }
+
+    const setUserCash = async (newCash: number) => {
+        const docRef = doc(collection(firestoreDB as Firestore, USERS_COLLECTION), (user as User).uid);
+        const currentUser = await getDoc(docRef);
+
+        const data = currentUser.data();
+        return setDoc(docRef, {
+            cash: newCash
+        }, {merge: true}).then(() => {
+            console.log("successfully updated my cash")
+        }).catch((error) => {
+            console.error("Error updating cash ", error);
+        });
+
+    }
+
+    const {portfolio, portfolioLoading} = usePortfolio(updatePortfolio);
     useEffect(() => {
         //todo: Create useCache hook to not fetch info that will not change every, time
         if (user != null) {
@@ -31,7 +66,8 @@ export const useCurrentUser = () => {
                 setDisplayName({firstName: userData?.firstName, lastName: userData?.lastName});
 
                 const cashVal = userData?.cash
-                setCashValue(cashVal);
+                console.log("CASH RETRIEVED" + cashVal);
+                setCashValue((oldVal) => cashVal);
                 const totalStock = calculateStockTotal();
                 setStockValue(totalStock);
 
@@ -41,7 +77,7 @@ export const useCurrentUser = () => {
         }
 
 
-    }, [user]);
+    }, [user, portfolioLoading, portfolioUpdated]);
 
-    return {displayName, cashValue, stockValue, portfolioValue};
+    return {displayName, cashValue, stockValue, portfolioValue, updatePortfolio};
 }

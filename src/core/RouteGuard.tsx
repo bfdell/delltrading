@@ -31,6 +31,9 @@ export function RouteGuard({children}: PropsWithChildren) {
 
 
     //todo: maybe replace the empty fragment with giant loading spinner or skeleton?
-    return (routeProtected ? (<div>{children}</div>) : (
+    return (routeProtected ? (
+        <div className={"mx-auto h-screen w-screen overflow-auto"}>
+            {children}
+        </div>) : (
         <div></div>));
 }

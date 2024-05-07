@@ -1,12 +1,13 @@
 import {createContext, PropsWithChildren, useContext, useEffect, useMemo, useState} from "react";
-import {getFirestore} from "firebase/firestore";
+import {collection, doc, Firestore, getDoc, getDocs, getFirestore} from "firebase/firestore";
 import {initializeApp} from "firebase/app";
 import {FirebaseAuthUserData, useInitializeServer} from "./UseInitializeServer";
-import {Auth, getAuth} from "firebase/auth";
+import {Auth, getAuth, User} from "firebase/auth";
 import * as firebase from "firebase/compat";
 
 export const configFirebase = () => {
     // Your web app's Firebase configuration
+    //todo: add restrictions to api key?!
     const firebaseConfig = {
         apiKey: "AIzaSyA9mK3CUOFRflBh20mop_KU3X-Rb6IWh_I",
         authDomain: "delltrading.firebaseapp.com",
@@ -76,7 +77,32 @@ export const useFirebaseAuth = () => {
 //todo make constanst for every table/collection name
 export const USERS_COLLECTION: string = "users";
 export const WATCHLIST_COLLECTION: string = "watchlist"
+export const PORTFOLIO_COLLECTION: string = "portfolio"
+
+const API_COLLECTION: string = "api_keys"
+
 export const DB_CONSTANTS = {
     USERS_COLLECTION,
-    WATCHLIST_COLLECTION
+    WATCHLIST_COLLECTION,
+    PORTFOLIO_COLLECTION,
+}
+
+export type KeyType = "stocks"
+export const useAPIKey = (keyType: KeyType) => {
+    const {firestoreDB} = useFirebaseAuth();
+    //
+    // useEffect(() => {
+    //     getKey(keyType).;
+    // }, []);
+
+    const getKey = async (keyType: KeyType): Promise<string> => {
+        return getDoc(doc(firestoreDB as Firestore, API_COLLECTION, keyType)).then((doc) => {
+            console.log("fetched stock market api key")
+            return doc.data()?.key
+        }, () => {
+            console.log("unable to fetch stock market api key")
+        });
+    }
+
+    return {getKey}
 }

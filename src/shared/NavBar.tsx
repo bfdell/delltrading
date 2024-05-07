@@ -3,17 +3,16 @@ import {PropsWithChildren} from "react";
 import {UserIcon} from "@heroicons/react/24/solid";
 import {useCurrentUser} from "../core/useCurrentUser";
 
-//todo: ADD DIFFERNT BACKGROUND CLOR TO SHOW ACTIVE TAB...
+//todo: ADD DIFFERNT BACKGROUND COLOR TO SHOW ACTIVE TAB...
 export const NavBar = () => {
     const {displayName} = useCurrentUser()
 
     return (
         <div className="navbar bg-base-100 flex justify-between space-x-14">
             <div>
-                <NavBarLink pathName={'/'} isLogo> LOGO HERE</NavBarLink>
-                <NavBarLink pathName={'/portfolio'}> Portfolio</NavBarLink>
-                <NavBarLink pathName={'/simulations'}> Simulations</NavBarLink>
-                <NavBarLink pathName={'/compare'}> Compare</NavBarLink>
+                <NavBarLink pathName={'/'} isLogo> BDELL TRADING</NavBarLink>
+                {/*<NavBarLink pathName={'/simulations'}> Simulations</NavBarLink>*/}
+                {/*<NavBarLink pathName={'/compare'}> Compare</NavBarLink>*/}
             </div>
             <NavBarLink pathName={'/profile'}>
                 <div className={"flex flex-row items-center"}>

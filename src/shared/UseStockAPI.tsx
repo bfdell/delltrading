@@ -2,87 +2,113 @@ import useSWR from 'swr'
 import axios from 'axios'
 import {useEffect} from "react";
 
-const BASE_URL: string = 'https://api.marketstack.com/v1/tickers/'
-const REQUEST_PARAMS = {
-    access_key: 'e79b7f3160ff652637680a364236f00d'
-}
-
-export type StockApiParams = {
-    date_from: string | undefined,
-    data_to: string | undefined,
-    limit: number | undefined,
-    sort: string | undefined,
-    interval: string | undefined,
-    symbols: string | undefined,
-}
+import {useAPIKey} from "../core/FirebaseConfig";
 
 export const USDollar = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
 });
 
+export type StockInterval =
+    '1min'
+    | ' 5min'
+    | ' 15min'
+    | ' 30min'
+    | ' 45min'
+    | ' 1h'
+    | ' 2h'
+    | ' 4h'
+    | ' 1day'
+    | ' 1week'
+    | ' 1month';
+
 export const useStockAPI = () => {
-    const {data, isLoading} = useSWR(['/latest', {symbols: "MSFT"}],
-        ([date, params]) => fetchCurrentData('', new Date()))
+    const {getKey} = useAPIKey("stocks");
+    const BASE_URL = "https://api.twelvedata.com";
+    const BASE_QUOTE_URL = BASE_URL + "/quote?";
+    const BASE_HISTORY_URL = BASE_URL + "/time_series?";
+    const BASE_LOGO_URL = BASE_URL + "/logo?"
 
-    useEffect(() => {
-        if (!isLoading) {
-            console.log(data);
-        }
-    }, [isLoading])
-    // const getCurrentTickerData = (ticker: string) => {
-    //     useSWR(['/latest', {symbols: "MSFT"}],
-    //         ([date, params]) => stockPriceAtFetcher(date, params as StockApiParams))
-    //
-    // }
-
-    // return {getCurrentTickerData};
-}
-//todo: change IEXG to nasdaq
-export const fetchCurrentData = async (ticker: string, date: Date | null = null) => {
-    //todo: do additional check to make sure that they are valid tickers
-
-    //Whenever serving data for a single stock, always server the closing price from the day befroe,
-    //that way I am guaranteed a response from the api
-    // const yesterday = new Date();
-    const yesterday = new Date()
-    yesterday.setDate(yesterday.getDate() - 1);
-    const dateStr = date === null ? new Date().toISOString().substring(0, 10) : yesterday.toISOString().substring(0, 10);
-    if (ticker !== undefined && ticker !== '') {
-        return axios.get(BASE_URL + ticker + "/eod", {
-            params: {
-                ...REQUEST_PARAMS, ...{
-                    date_from: dateStr,
-                } as StockApiParams
+    const makeTickerQuery = (tickers: string[]): string => {
+        let tickerQuery = 'symbol=';
+        for (let i = 0; i < tickers.length; i++) {
+            const ticker = tickers[i];
+            tickerQuery += ticker
+            if (i < tickers.length - 1) {
+                tickerQuery += ",";
             }
-        })
-            .then(
-                (res) => {
-                    console.log("JUST FINISHED FETCHING " + ticker);
-
-                    if (ticker === 'faze') {
-                        console.log(res);
-                    }
-                    if (res.data.data.eod.length === 0) {
-                        console.log("Stock " + ticker + " has no relevant value");
-                        return Promise.reject("BadStock");
-                    }
-
-                    return res.data.data
-                });
-    } else {
-        console.log("invalid params to fetch stock price ");
-        return Promise.reject();
+        }
+        return tickerQuery;
     }
-}
-export const useStockPriceAt = (dateStr: string, stockList: string) => {
-    //todo: add conditional that checks if it is either /latest or a specific date
-    const {data, isLoading, error} = useSWR([dateStr, {symbols: stockList}],
-        ([date, params]) => fetchCurrentData('', new Date()));
 
-    return {
-        stockData: data,
-        stockLoaded: isLoading,
-        error
+    const makeAPIQuery = async () => {
+        let apiKey = await getKey("stocks");
+        return "&apikey=" + apiKey;
     }
+
+    const formatDate = (date: Date) => {
+        const dateStr = date.toISOString().substring(0, 17);
+        const dayAndTime = dateStr.split("T");
+
+        return dayAndTime[0] + " " + dayAndTime[1];
+    }
+
+    const handleError = (tickers: string[], err: any) => {
+        console.log(err.data.message);
+    }
+
+    const fetchQuotes = async (tickers: string[]) => {
+        if (tickers.length > 0) {
+
+            const tickerQuery = makeTickerQuery(tickers)
+
+            const apiKeyQuery = await makeAPIQuery();
+            return axios.get(BASE_QUOTE_URL + tickerQuery + apiKeyQuery).then((res) => {
+                console.log("Finished fetching stock quotes")
+                return res.data;
+            }).catch((err) => {
+                handleError(tickers, err);
+            });
+        }
+    }
+
+    const fetchStockHistory = async (tickers: string[], interval: StockInterval,
+                                     startDate: Date, endDate: Date
+    ) => {
+        if (tickers.length > 0) {
+
+            const tickerQuery = makeTickerQuery(tickers);
+            const intervalQuery = '&interval=' + interval;
+            const startDateQuery = '&start_date=' + formatDate(startDate);
+            const endtDateQuery = '&end_date=' + formatDate(endDate);
+
+            const apiKeyQuery = await makeAPIQuery();
+            return axios.get(BASE_HISTORY_URL + tickerQuery + intervalQuery + startDateQuery + endtDateQuery + apiKeyQuery).then((res) => {
+                console.log("Finished fetching stock history")
+                // console.log(res.data);
+                return res.data;
+            }).catch((err) => {
+                handleError(tickers, err);
+            });
+        }
+    }
+
+    //This works but probalby wont be used because of companies marketcap.com link
+    const fetchLogos = async (tickers: string[]) => {
+        if (tickers.length > 0) {
+            const tickerQuery = makeTickerQuery(tickers);
+            const apiKeyQuery = await makeAPIQuery();
+
+            return axios.get(BASE_LOGO_URL + tickerQuery + apiKeyQuery).then((res) => {
+                console.log("Finished fetching stock logo ")
+                // console.log(res.data);
+                return res.data;
+            }).catch((err) => {
+                handleError(tickers, err);
+            });
+        }
+    }
+
+    return {fetchQuotes, fetchStockHistory, fetchLogos}
 }
+
