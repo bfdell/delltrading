@@ -9,13 +9,13 @@ export const configFirebase = () => {
     // Your web app's Firebase configuration
     //todo: add restrictions to api key?!
     const firebaseConfig = {
-        apiKey: "AIzaSyA9mK3CUOFRflBh20mop_KU3X-Rb6IWh_I",
-        authDomain: "delltrading.firebaseapp.com",
-        projectId: "delltrading",
-        storageBucket: "delltrading.appspot.com",
-        messagingSenderId: "859665659124",
-        appId: "1:859665659124:web:cddb6a03a1c23595e85aa1",
-        measurementId: "G-0C01BVECWY"
+        apiKey: process.env.REACT_APP_API_KEY,
+        authDomain: process.env.REACT_APP_AUTH_DOMAIN,
+        projectId: process.env.REACT_APP_PROJECT_ID,
+        storageBucket: process.env.REACT_APP_STORAGE_BUCKET,
+        messagingSenderId: process.env.REACT_APP_MESSANGING_SENDER_ID,
+        appId: process.env.REACT_APP_APP_ID,
+        measurementId: process.env.REACT_APP_MEASUREMENT_ID,
     };
     // Initialize Firebase
     const firebaseApp = initializeApp(firebaseConfig);
