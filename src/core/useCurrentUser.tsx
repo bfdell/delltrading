@@ -1,83 +1,152 @@
 //todo: Move usename and password stuff to here
-
-import {useEffect, useState} from "react";
-import {collection, doc, Firestore, getDoc, setDoc} from "firebase/firestore";
-import {PORTFOLIO_COLLECTION, useFirebaseAuth, USERS_COLLECTION} from "./FirebaseConfig";
-import {USDollar} from "../shared/UseStockAPI";
-import {usePortfolio} from "../features/home/UsePortfolio";
-import {StockTickerData} from "../shared/StockUtils";
-import {User} from "firebase/auth";
+//todo: change name of this file to useDataContext
+import {createContext, PropsWithChildren, useContext, useEffect, useMemo, useState} from "react";
+import {StockAsset, usePortfolio} from "../features/home/UsePortfolio";
+import {axios} from "./UseAxiosApi";
+import {getLogoLink} from "../shared/StockUtils";
 
 type UserNameInfo = {
     firstName: string,
-    lastName: string,
+    lastName: string
 }
 
 export const useCurrentUser = () => {
-    const {firestoreDB, user} = useFirebaseAuth();
 
     const [displayName, setDisplayName] = useState<UserNameInfo>({firstName: '', lastName: ''});
     const [cashValue, setCashValue] = useState<number>(0);
     const [stockValue, setStockValue] = useState<number>(0);
     const [portfolioValue, setPortfolioValue] = useState<number>(0);
     const [portfolioUpdated, setPortfolioUpdated] = useState(false);
+    const userApiPath = "users";
 
-    const calculateStockTotal = (): number => {
-        let total = 0;
-        portfolio.forEach((stockAsset) => {
-            total += stockAsset.shares * stockAsset.price;
-        })
-        return total;
-    }
-
-    const updatePortfolio = (stock: StockTickerData, shares: number) => {
-        console.log("REFRESHING")
-        console.log(stock);
-        const cost = stock.price * shares;
-        setCashValue(cashValue - cost);
-        setUserCash(cashValue - cost).then(() => {
-            setPortfolioUpdated(true);
-        });
-    }
-
-    const setUserCash = async (newCash: number) => {
-        const docRef = doc(collection(firestoreDB as Firestore, USERS_COLLECTION), (user as User).uid);
-        const currentUser = await getDoc(docRef);
-
-        const data = currentUser.data();
-        return setDoc(docRef, {
-            cash: newCash
-        }, {merge: true}).then(() => {
-            console.log("successfully updated my cash")
-        }).catch((error) => {
-            console.error("Error updating cash ", error);
-        });
-
-    }
-
-    const {portfolio, portfolioLoading} = usePortfolio(updatePortfolio);
     useEffect(() => {
-        //todo: Create useCache hook to not fetch info that will not change every, time
-        if (user != null) {
-            //fetch data from document
-            const docRef = doc(firestoreDB as Firestore, USERS_COLLECTION, user.uid);
-            getDoc(docRef).then((doc) => {
-                const userData = doc.data();
-                setDisplayName({firstName: userData?.firstName, lastName: userData?.lastName});
+        return () => console.log('user info unmounted');
+    }, []);
 
-                const cashVal = userData?.cash
-                console.log("CASH RETRIEVED" + cashVal);
-                setCashValue((oldVal) => cashVal);
-                const totalStock = calculateStockTotal();
-                setStockValue(totalStock);
+    return {displayName, cashValue, stockValue, portfolioValue};
+}
 
-                //todo: calculate porfolio values based on stock holdings and cashval...
-                setPortfolioValue(totalStock + cashVal);
-            })
+type UserData = {
+    firstName: string,
+    lastName: string,
+    cashValue: number,
+    stockValue: number,
+    portfolioValue: number,
+    portfolio: StockAsset[];
+}
+
+type UserContext = {
+    userData: UserData
+    updateAfterSell: Function,
+    updateAfterBuy: Function,
+}
+
+export const UserDataContext = createContext<UserContext>({} as UserContext,);
+const parsePortfolioTickerData = (rawTickerData: any, shares: number): StockAsset => {
+    return {
+        ticker: rawTickerData.symbol,
+        name: rawTickerData.name,
+        shares: shares,
+        price: rawTickerData.close,
+        percentChange: rawTickerData.percent_change,
+        logoUrl: getLogoLink(rawTickerData.symbol)
+    };
+}
+//Create a provider
+export const UserDataProvider = ({children}: PropsWithChildren) => {
+    const [userState, setUserState] = useState<UserData>({} as UserData);
+
+    const updateAfterSell = (asset: StockAsset, shares: number) => {
+        let profit = asset.price * shares;
+        if (shares === asset.shares) {
+            userState.portfolio = userState.portfolio.filter((stock) => stock.ticker !== asset.ticker);
+        } else {
+            asset.shares -= shares;
+        }
+        const updatedState = {
+            ...userState,
+            stockValue: userState.stockValue - profit,
+            cashValue: userState.cashValue + profit,
+            portfolioValue: (userState.stockValue - profit) + (userState.cashValue + profit),
+            portfolio: userState.portfolio
+        };
+        setUserState(updatedState);
+    }
+
+    const updateAfterBuy = (asset: StockAsset, shares: number) => {
+        let spent = asset.price * shares;
+        const updatedState = {
+            ...userState,
+            stockValue: userState.stockValue + spent,
+            cashValue: userState.cashValue - spent,
+            portfolioValue: (userState.stockValue + spent) + (userState.cashValue - spent),
+            portfolio: userState.portfolio
+        };
+
+        let portfolioAsset = updatedState.portfolio.find((stock) => stock.ticker === asset.ticker);
+        if (portfolioAsset !== undefined) {
+            portfolioAsset.shares += shares;
+        } else {
+            portfolioAsset = {
+                ticker: asset.ticker,
+                name: asset.name,
+                price: asset.price,
+                logoUrl: asset.logoUrl,
+                percentChange: asset.percentChange,
+                shares: shares,
+            }
+            updatedState.portfolio.push(portfolioAsset);
         }
 
+        setUserState(updatedState);
+    }
 
-    }, [user, portfolioLoading, portfolioUpdated]);
+    useEffect(() => {
+        console.log("FETCHING ALL USER INFO");
+        const fetchData = async () => {
+            try {
+                let res = await axios.get(`users/info`);
+                let resData = res.data;
+                let portfolioRes = await axios.get('portfolio');
 
-    return {displayName, cashValue, stockValue, portfolioValue, updatePortfolio};
-}
+                const rawPortfolio: any[] = portfolioRes.data;
+                let stockTotal = 0;
+                const portfolioData: StockAsset[] = [];
+                rawPortfolio?.forEach((entry) => {
+                    let asset = parsePortfolioTickerData(entry, entry.shares);
+                    stockTotal += asset.shares * asset.price;
+                    portfolioData.push(asset);
+                });
+
+                setUserState({
+                    firstName: resData.first_name,
+                    lastName: resData.last_name,
+                    cashValue: resData.cash,
+                    stockValue: stockTotal,
+                    portfolioValue: stockTotal + resData.cash,
+                    portfolio: portfolioData
+                } as UserData);
+
+            } catch (error) {
+                console.log("error retrieving user data", error)
+            }
+        };
+        fetchData();
+    }, []);
+
+
+    //todo: loading spinners across components while user state is equal to null instead of blocking all rendering
+    return (
+        <UserDataContext.Provider value={{
+            userData: userState,
+            updateAfterSell: updateAfterSell,
+            updateAfterBuy: updateAfterBuy,
+        }}>
+            {children}
+        </UserDataContext.Provider>
+    );
+};
+
+export const useUserData = () => {
+    return useContext(UserDataContext);
+};

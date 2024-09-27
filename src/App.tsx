@@ -9,7 +9,6 @@ import {Compare} from "./features/compare/Compare";
 import {Simulations} from "./features/simulations/Simulations";
 import {RouteGuard} from "./core/RouteGuard";
 import {StockGraph, TestGraph} from "./shared/StockGraphs";
-import {FirebaseAuthProvider} from "./core/FirebaseConfig";
 
 import {
     ColorType,
@@ -61,16 +60,14 @@ function App() {
 
     return (
         <div>
-            <FirebaseAuthProvider>
-                <RouterProvider router={router}/>
-                {/*<ChartOne/>*/}
-                {/*<div className={"flex h-1/2 w-full gap-2 flex-row"}>*/}
-                {/*    <LWeight/>*/}
-                {/*    <LWeight/>*/}
-                {/*    <LWeight/>*/}
-                {/*    <LWeight/>*/}
-                {/*</div>*/}
-            </FirebaseAuthProvider>
+            <RouterProvider router={router}/>
+            {/*<ChartOne/>*/}
+            {/*<div className={"flex h-1/2 w-full gap-2 flex-row"}>*/}
+            {/*    <LWeight/>*/}
+            {/*    <LWeight/>*/}
+            {/*    <LWeight/>*/}
+            {/*    <LWeight/>*/}
+            {/*</div>*/}
         </div>
     );
 }

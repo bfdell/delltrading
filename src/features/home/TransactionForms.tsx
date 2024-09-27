@@ -1,60 +1,62 @@
 import {MagnifyingGlassIcon} from "@heroicons/react/24/outline";
 import React, {useState} from "react";
 import {StockAsset, usePortfolio} from "./UsePortfolio";
-import {USDollar, useStockAPI} from "../../shared/UseStockAPI";
+import {USDollar} from "../../shared/StockUtils";
 import {PercentChangeFormatter} from "../../shared/StockComponents";
 import {parseTickerData, StockTickerData} from "../../shared/StockUtils";
-import {useCurrentUser} from "../../core/useCurrentUser";
+import {useCurrentUser, useUserData} from "../../core/useCurrentUser";
+import {axios} from "../../core/UseAxiosApi";
 
 export const TransactionForms = () => {
 
 }
-
+// todo MAX VALUE nan for when the amount is 0
+//todo Add skeleton (when you buy stock it will go here for empty table
+//todo loading skeleton for name instead of undefined
 
 export const BuyStockForm = () => {
-    const {fetchQuotes} = useStockAPI();
-
     const [searchInput, setSearchInput] = useState<string>('');
     const [errorMessage, setErrorMessage] = useState(false);
     const [unknownError, setUnknownError] = useState(false);
     const [loadingData, setLoadingData] = useState(false);
     //todo make error message dissapear when focus is lsot
     const [stockData, setStockData] = useState<StockTickerData | null>(null);
-
-    const {cashValue, updatePortfolio} = useCurrentUser();
-    const {buyStock} = usePortfolio(updatePortfolio)
+    const {userData, updateAfterBuy} = useUserData();
+    const cashValue = userData.cashValue;
+    const {buyStock} = usePortfolio();
     const [sharesToBuy, setSharesToBuy] = useState(0);
     const searchTicker = () => {
+        setSharesToBuy(0);
         setLoadingData(true);
-        fetchQuotes([searchInput]).then((rawStockData) => {
-            const stockTickerData = parseTickerData(rawStockData);
-            console.log(rawStockData.code);
-            if (rawStockData.code === 404 || rawStockData.code === 400) {
+        axios.get('stock', {params: {ticker: searchInput}}).then((res) => {
+            console.log(res);
+            if (res.status !== undefined && (Math.floor(res.status / 100) === 4 || Math.floor(res.status / 100) === 5)) {
+                setStockData(null);
                 setErrorMessage(true);
-                console.log("fetched invalid ticker in buy form")
-                setStockData(null);
-                console.log("fetched invalid ticker in buy form")
-                // return Promise.reject(rawStockData);
-            } else if (rawStockData.code !== undefined && (Math.floor(rawStockData.code / 100) === 4 || Math.floor(rawStockData.code / 100) === 5)) {
-                console.log("fetched invalid data due to other error")
-                setUnknownError(true)
-                setStockData(null);
             } else {
-                setStockData(stockTickerData);
+                const stockTickerData = parseTickerData(res.data);
                 setErrorMessage(false);
-                setUnknownError(false)
+                setStockData(stockTickerData);
             }
-
             setLoadingData(false);
-        })
+        }).catch((err) => {
+            setStockData(null);
+            setErrorMessage(true);
+            console.log("ERROR WHEN SEARCHING TICKER TO BUY", err);
+        }).finally(() => {
+            setLoadingData(false);
+        });
     }
 
     const submitBuyForm = () => {
         if (stockData != null && !isNaN(sharesToBuy) && sharesToBuy > 0) {
-            buyStock(stockData, sharesToBuy);
+            buyStock(stockData, sharesToBuy).then((res) => {
+                setStockData(null);
+                setSearchInput('');
+                updateAfterBuy(stockData, sharesToBuy);
+            });
         }
     }
-
 
     const border = (errorMessage || unknownError) ? 'border-2 border-solid border-red-600 focus-within:border-2 focus-within:border-solid focus-within:border-red-600' : ''
     return (
@@ -62,10 +64,9 @@ export const BuyStockForm = () => {
             {errorMessage && (<span className={"text-red-600"}>Invalid ticker!</span>)}
             {unknownError && (<span className={"text-red-600"}>An unknown error occurred</span>)}
             <label className={`${border} input input-bordered bg-gray-300 flex items-center gap-2`}>
-                <input type="text" className={"grow"} placeholder="Stock Ticker" maxLength={20}
+                <input type="text" value={searchInput} className={"grow"} placeholder="Stock Ticker" maxLength={20}
                        onChange={(e) => {
-                           setSearchInput(e.currentTarget.value);
-                           console.log(searchInput);
+                           setSearchInput(e.currentTarget.value);;
                        }}
                        onKeyDown={(keyEvent: React.KeyboardEvent<HTMLInputElement>) => {
                            if (keyEvent.key === "Enter" && searchInput !== '' && stockData?.ticker !== searchInput.toUpperCase()) {
@@ -88,11 +89,11 @@ export const BuyStockForm = () => {
                         <div className={"mt-4 pl-2 flex flex-row gap-1 flex-wrap items-center justify-between"}>
                             <div className={"basis-1/2"}>
                                 <div className={"pl-2 text-gray-700"}>
-                                    Max: {Math.floor(cashValue / stockData.price)}
+                                    Max: {Math.floor(cashValue! / stockData.price)}
                                 </div>
                                 <label className={"input bg-gray-300 flex items-center"}>
                                     <span className={"text-gray-700 text-sm mr-2"}>Shares: </span>
-                                    <input value={sharesToBuy} max={Math.floor(cashValue / stockData.price)} min={0}
+                                    <input value={sharesToBuy} max={Math.floor(cashValue! / stockData.price)} min={0}
                                            onChange={(e) => {
                                                setSharesToBuy(parseInt(e.currentTarget.value))
 
@@ -131,14 +132,14 @@ const BuyStockSkeleton = () => {
 }
 
 
-export const SellStockForm = ({portfolio}: { portfolio: StockAsset[] }) => {
+export const SellStockForm = () => {
     const [searchInitialized, setSearchInitialized] = useState(false)
     const [stockAsset, setStockAsset] = useState<StockAsset>({} as StockAsset);
     const [sharesToSell, setSharesToSell] = useState(0);
-    const {updatePortfolio} = useCurrentUser()
-    const {sellStock} = usePortfolio(updatePortfolio);
+    const {portfolio, sellStock} = usePortfolio();
     const [pastLimit, setPastLimit] = useState(false);
-
+    const {userData, updateAfterSell} = useUserData();
+    const [selectedValue, setSelectedValue] = useState("default");
 
     const border = (pastLimit) ? 'border-2 border-solid border-red-600 focus-within:border-2 focus-within:border-solid' : '';
     const displayTickerData = (tickerIndex: number) => {
@@ -149,7 +150,12 @@ export const SellStockForm = ({portfolio}: { portfolio: StockAsset[] }) => {
     const submitSellForm = () => {
         if (stockAsset != null && !isNaN(sharesToSell) && sharesToSell > 0 && sharesToSell <= stockAsset.shares) {
             setPastLimit(false);
-            sellStock(stockAsset, sharesToSell);
+            sellStock(stockAsset, sharesToSell).then((res) => {
+                updateAfterSell(stockAsset, sharesToSell);
+                setSearchInitialized(false);
+                setSharesToSell(0);
+                setSelectedValue("default");
+            });
         } else if (sharesToSell > stockAsset.shares) {
             setPastLimit(true)
         }
@@ -157,11 +163,13 @@ export const SellStockForm = ({portfolio}: { portfolio: StockAsset[] }) => {
 
     return (
         <div className={"bg-gray-200 p-2"}>
-            <select className="select bg-gray-300 select-bordered w-full max-h-80 max-w-xs" onChange={(e) => {
-                displayTickerData(parseInt(e.currentTarget.value))
-            }}>
-                <option disabled selected>Select Stock Ticker</option>
-                {portfolio.map((stockAsset, index) => {
+            <select value={selectedValue} className="select bg-gray-300 select-bordered w-full max-h-80 max-w-xs"
+                    onChange={(e) => {
+                        displayTickerData(parseInt(e.currentTarget.value))
+                        setSelectedValue(e.currentTarget.value)
+                    }}>
+                <option value={"default"} disabled selected>Select Stock Ticker</option>
+                {portfolio?.map((stockAsset, index) => {
                     return <option value={index} key={index}>{stockAsset.ticker}</option>
                 })}
             </select>
@@ -190,7 +198,7 @@ export const SellStockForm = ({portfolio}: { portfolio: StockAsset[] }) => {
                         </div>
                         <div className={"basis-2/5"}>
                             <div className={"pl-2 text-gray-700"}>
-                                Cost:
+                                Profit:
                             </div>
                             <div className={"text-xl text-black text-"}>
                                 {USDollar.format(stockAsset === undefined || isNaN(sharesToSell * stockAsset?.price) ? 0 : sharesToSell * stockAsset?.price)}
@@ -208,8 +216,6 @@ export const SellStockForm = ({portfolio}: { portfolio: StockAsset[] }) => {
 }
 
 const StockFormData = ({stockAsset}: { stockAsset: StockAsset | StockTickerData | null }) => {
-    console.log("MY ASSET:  ");
-    console.log(stockAsset)
     return (
         (stockAsset === null ? (<> </>) : (
                 <div className={"mt-4 px-2"}>

@@ -9,11 +9,12 @@ export const Login = () => {
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
 
-    const login = () => {
+    const login = async () => {
         if (email !== '' && password !== '') {
-            signIn(email, password).then(() => {
-                navigate('/home');
-            })
+            let successful = await signIn(email, password);
+            if (successful) {
+                navigate('/home', {replace: true});
+            }
         }
     }
 
