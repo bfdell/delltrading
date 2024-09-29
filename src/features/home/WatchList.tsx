@@ -3,10 +3,10 @@ import {XCircleIcon} from "@heroicons/react/24/solid";
 import React, {SetStateAction, useState} from "react";
 import {useWatchList} from "./UseWatchList";
 import {PlusCircleIcon} from "@heroicons/react/24/solid";
-import {USDollar} from "../../shared/UseStockAPI";
 import {EllipsisVerticalIcon} from "@heroicons/react/24/outline";
 import {PercentChangeFormatter} from "../../shared/StockComponents";
 import {StockTickerData} from "../../shared/StockUtils";
+import {USDollar} from "../../shared/StockUtils";
 
 //todo: render continuation dots to show there is more to scroll down (only render 6 or 7 items at a time)
 //todo: make watch list have a predecfined height/seklotn while loading
@@ -42,11 +42,11 @@ export const WatchList = () => {
             addTicker(ticker).then(() => {
                 closeForm();
             }).catch((err) => {
-                if (err.code === 404) {
+                // if (err.code === 404) {
                     //if we just failed to add a new invalid ticker display error message
                     setFormError(true);
                     setSearchDuplicate(false);
-                }
+                // }
             });
         }
     }

@@ -1,15 +1,9 @@
-import {useState, useEffect, useRef} from 'react';
-import {collection, doc, getDocs, setDoc, Firestore, deleteDoc} from "firebase/firestore";
-import {useFirebaseAuth, USERS_COLLECTION, WATCHLIST_COLLECTION} from "../../core/FirebaseConfig";
-import {useStockAPI} from "../../shared/UseStockAPI";
-import {User} from 'firebase/auth'
+import {useState, useEffect} from 'react';
+
 import {StockTickerData, parseTickerData} from "../../shared/StockUtils";
+import {axios} from "../../core/UseAxiosApi";
 
 export const useWatchList = () => {
-    const {firestoreDB, user, userInitialized} = useFirebaseAuth();
-    const {fetchQuotes} = useStockAPI();
-
-    const firebaseTickersArr = useRef<string[]>([]);
     const [watchList, setWatchList] = useState<StockTickerData[]>([] as StockTickerData[]);
 
     //loading states
@@ -17,88 +11,49 @@ export const useWatchList = () => {
     const [pendingNewTicker, setPendingNewTicker] = useState(false);
 
     useEffect(() => {
-            if (userInitialized && user !== null) {
-                getFirebaseTickers().then(async (firebaseTickers) => {
-                        const rawStockData = await fetchQuotes(firebaseTickers);
-
-                        const watchListCopy: StockTickerData[] = [];
-                        firebaseTickers.forEach((tickerStr) => {
-                            const rawTickerData = rawStockData[tickerStr];
-                            watchListCopy.push(parseTickerData(rawTickerData));
-                        })
-
-                        setWatchList(watchListCopy)
-                        setWatchListLoading(false);
-                    }
-                );
-            }
+            axios.get('watchlist').then((res) => {
+                const stockData: any[] = res.data;
+                const tempList: StockTickerData[] = [];
+                stockData?.forEach((ticker) => {
+                    tempList.push(parseTickerData(ticker));
+                })
+                console.log("WATHCLIST: ", res)
+                setWatchList(tempList);
+                setWatchListLoading(false);
+            })
         }, []
     );
 
-    const getFirebaseTickers = async (): Promise<string[]> => {
-        let watchListTickers: string[] = [];
-
-        return getDocs(collection(firestoreDB as Firestore, USERS_COLLECTION, (user as User).uid, WATCHLIST_COLLECTION)).then((items) => {
-            items.forEach((item) => {
-                console.log("Fetched ticker " + item.id + " from firestore db");
-                watchListTickers.push(item.id)
-            });
-
-            console.log("initialized watch list from database");
-            firebaseTickersArr.current = watchListTickers;
-            return watchListTickers;
-        }, (err) => {
-            console.log("ERROR: failed to fetch watchlist items....");
-            console.log(err);
-            return [];
-        });
-    }
 
     const addTicker = async (ticker: string) => {
-        //if list is loading, I don't want two loading spinners
-        if (!watchListLoading) {
-            setPendingNewTicker(true);
-        }
+        // //if list is loading, I don't want two loading spinners
+        // if (!watchListLoading) {
+        //     setPendingNewTicker(true);
+        // }
 
-        const rawStockData = await fetchQuotes([ticker]);
-        if (rawStockData.code === 404) {
-            setPendingNewTicker(false);
-            return Promise.reject(rawStockData);
-        }
-
-        const watchlistRef = collection(firestoreDB as Firestore, USERS_COLLECTION, (user as User).uid, WATCHLIST_COLLECTION);
-        const tickerDoc = doc(watchlistRef, ticker);
-        setDoc(tickerDoc, {}).then((result) => {
-            console.log("created new watchlist doc for " + ticker);
-            firebaseTickersArr.current.push(ticker);
-
-            setWatchList((oldList) => [parseTickerData(rawStockData), ...oldList]);
-            setPendingNewTicker(false);
-        }, (err) => {
-            console.log("error occurred while adding new watchlist doc for " + ticker + ".... " + err);
-        });
+        return axios.post('watchlist/append', {ticker: ticker}).then((res) => {
+            watchList.push(parseTickerData(res.data));
+            setWatchList(watchList);
+            //todo: instead of triggering full re-render, just remove the specific ticker I added
+            // setWatchListLoading(true);
+        })
     }
 
-    const removeFirebaseTicker = async (ticker: string) => {
-        const watchlistRef = collection(firestoreDB as Firestore, USERS_COLLECTION, (user as User).uid, WATCHLIST_COLLECTION);
-        const tickerDoc = doc(watchlistRef, ticker);
-        return deleteDoc(tickerDoc).then((result) => {
-            //after we delete a new ticker, remove it from our firebase ticker array
-            console.log("deleted watchlist doc for " + ticker);
-            firebaseTickersArr.current = firebaseTickersArr.current.filter(item => item !== ticker);
-        }, (err) => {
-            console.log("error occurred while removing watchlist doc for " + ticker + ".... " + err);
-        });
-    }
-
-    const deleteTicker = (ticker: string) => {
-        removeFirebaseTicker(ticker).then(() => {
-            //update watch list incase it also conains ticker
-            setWatchList((watchList) => watchList.filter((item) => {
-                return item.ticker !== ticker
-            }));
-            console.log("removed " + ticker + " from watchlist");
-        });
+    const deleteTicker = async (ticker: string) => {
+        setWatchListLoading(true);
+        return axios.delete('watchlist/remove', {
+                data: {
+                    ticker: ticker
+                }
+            }
+        ).then((res) => {
+            console.log(res);
+            setWatchList(watchList.filter((item) => {return item.ticker !== ticker}))
+            setWatchListLoading(false);
+            //todo: instead of triggering full re-render, just remove the specific ticker I deleted
+        }).catch((err) => {
+            console.log("DELETE ERR", err)
+        })
     }
 
     return {

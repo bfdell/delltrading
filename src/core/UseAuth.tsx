@@ -1,58 +1,65 @@
-import {Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut} from "firebase/auth";
-import {doc, Firestore, setDoc} from "firebase/firestore";
-import {useFirebaseAuth} from "./FirebaseConfig";
+import {axios} from "./UseAxiosApi";
+import {useLocation, useNavigate} from "react-router-dom";
+import Axios, {AxiosResponse} from "axios";
 
+
+//todo: user provider set and update after create user or sign in
 export const useAuth = () => {
-    const {firestoreDB, auth, user, userInitialized} = useFirebaseAuth()
+    const navigate = useNavigate();
+    const userApiPath = "users"
 
+    type UserResponse = {
+        Authorization: string
+        user: {
+            cash: number,
+            email: string,
+            firstName: string
+            lastName: string,
+            id: number
+        }
+    }
     const createUser = async (firstName: string, lastName: string, email: string, password: string) => {
-        return createUserWithEmailAndPassword(auth as Auth, email, password)
-            .then((userCredential) => {
-                // Signed up
-                const user = userCredential.user;
+        return axios.post(`${userApiPath}/register`, {
+            first_name: firstName,
+            last_name: lastName,
+            email: email,
+            password: password
 
-                setDoc(doc(firestoreDB as Firestore, "users", user.uid), {
-                    firstName: firstName,
-                    lastName: lastName,
-                    cash: 100000,
+        }).then((res: AxiosResponse<UserResponse, any>) => {
+            localStorage.setItem(process.env.REACT_APP_JWT_KEY as string, res.data.Authorization)
+            console.log(res);
 
-                }).then((result) => {
-                    console.log(`set first and last name ${firstName} ${lastName} for new user`)
-                }, (err) => {
-                    console.log(err)
-                })
-                // ...
-                console.log("user created");
-            })
-            .catch((error) => {
-                const errorCode = error.code;
-                const errorMessage = error.message;
-                // ..
-                console.log("CREATE USER ERROR... code: " + errorCode + " message: " + errorMessage);
-            });
-    }
-    const signIn = async (email: string, password: string) => {
-        return signInWithEmailAndPassword(auth as Auth, email, password)
-            .then((userCredential) => {
-                // Signed in
-                const user = userCredential.user;
-                // ...
-            })
-            .catch((error) => {
-                const errorCode = error.code;
-                const errorMessage = error.message;
-                console.log("SIGN IN ERROR... code: " + errorCode + " message: " + errorMessage);
-            });
-    }
-    const logout = async () => {
-        return signOut(auth as Auth).then(() => {
-            // Sign-out successful.
-            console.log("signout successful");
-        }).catch((error) => {
-            // An error happened.
-            console.log("error signing out")
         });
     }
 
-    return {auth, user, userInitialized, createUser, signIn, logout};
+    const signIn = async (email: string, password: string) => {
+        return axios.post(`${userApiPath}/login`, {
+            email: email,
+            password: password
+        }).then((res: AxiosResponse<UserResponse, any>) => {
+            localStorage.setItem(process.env.REACT_APP_JWT_KEY as string, res.data.Authorization)
+            // console.log(res.data.Authorization)
+            // console.log(res.data)
+            // console.log(res);
+            return true;
+        }).catch((err) => {
+            return false;
+        });
+    }
+
+    const authorize = async () => {
+        return axios.get(`${userApiPath}/authorize`)
+            .then((res) => {
+                if (res.status / 100 === 4) {
+                    return Promise.reject();
+                }
+            })
+    }
+
+    const logout = () => {
+        localStorage.removeItem(process.env.REACT_APP_JWT_KEY as string);
+        navigate('/login', {replace: true});
+    }
+
+    return {createUser, signIn, authorize, logout};
 }

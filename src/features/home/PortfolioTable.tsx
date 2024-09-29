@@ -1,17 +1,13 @@
-import {USDollar} from "../../shared/UseStockAPI";
-import React from "react";
+import {USDollar} from "../../shared/StockUtils";
+import React, {useEffect} from "react";
 import {StockAsset, usePortfolio} from "./UsePortfolio";
 import {BuyStockForm, SellStockForm} from "./TransactionForms";
 import {PercentChangeFormatter} from "../../shared/StockComponents";
-import {useCurrentUser} from "../../core/useCurrentUser";
 
 
-//todo: have sticy bar that is at the top whenever your scrool past the tour stock sign
+//todo: have sticy bar that is at the top whenever your scroll past the tour stock sign
 export const PortfolioTable = () => {
-    const {updatePortfolio} = useCurrentUser();
-    const {portfolio, portfolioLoading} = usePortfolio(updatePortfolio);
-
-
+    const {portfolio} = usePortfolio();
     //TODO ADD UPDATER
     return (
         <div className={"basis-4/5 mt-6"}>
@@ -35,7 +31,7 @@ export const PortfolioTable = () => {
                         </div>
                         <ul tabIndex={0}
                             className="dropdown-content z-[1] mt-2 text-black menu shadow bg-gray-200 rounded-box w-80">
-                            <SellStockForm portfolio={portfolio}/>
+                            <SellStockForm/>
                         </ul>
                     </div>
                 </div>
@@ -59,11 +55,11 @@ export const PortfolioTable = () => {
                     <tbody>
 
 
-                    {!portfolioLoading && portfolio.map((listItem, index) => {
+                    {portfolio !== undefined && portfolio.map((listItem, index) => {
                         return <StonkRow index={index} key={listItem.ticker} stonk={listItem}/>
                     })}
 
-                    {portfolioLoading && <PortfolioLoadingIndicator/>}
+                    {/*{portfolioLoading && <PortfolioLoadingIndicator/>}*/}
 
                     {/*Hard coded values before database was added*/}
                     {/*<StonkRow index={0} ticker={"GOOG"} name={"Alphabet"} shares={23} price={420.69}/>*/}

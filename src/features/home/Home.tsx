@@ -5,18 +5,19 @@ import {XCircleIcon} from "@heroicons/react/24/solid";
 import {SetStateAction, useState} from "react";
 import {WatchList} from "./WatchList";
 import {PortfolioTable} from "./PortfolioTable";
-import {useCurrentUser} from "../../core/useCurrentUser";
-import {USDollar} from "../../shared/UseStockAPI";
+import {useUserData} from "../../core/useCurrentUser";
 import {PortfolioGraph} from "./PortfolioGraph";
+import {USDollar} from "../../shared/StockUtils";
 
 export const Home = () => {
-    const {cashValue, stockValue, portfolioValue} = useCurrentUser();
+    const {userData, updateAfterSell} = useUserData();
 
     return (
         <div id={"Home"}>
             <NavBar/>
             <div className={"my-4 container mx-auto w-11/12"}>
-                <PortfolioStatusBar portfolioValue={portfolioValue} stockValue={stockValue} cashValue={cashValue}/>
+                {/*todo make numbers a skeleton while they load*/}
+                <PortfolioStatusBar portfolioValue={userData.portfolioValue != null ? userData.portfolioValue : 0} stockValue={userData.stockValue != null ? userData.stockValue : 0} cashValue={userData.cashValue != null ? userData.cashValue : 0}/>
                 <div className={"mt-8 flex flex-row gap-4"}>
                     {/*<HomePortfolioChart/>*/}
                     <PortfolioGraph/>

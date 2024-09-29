@@ -2,18 +2,15 @@ import {NavBar} from "../../shared/NavBar";
 import {PropsWithChildren, useRef} from "react";
 import {useAuth} from "../../core/UseAuth";
 import {useNavigate} from "react-router-dom";
-import {useCurrentUser} from "../../core/useCurrentUser";
+import {useCurrentUser, useUserData} from "../../core/useCurrentUser";
 
 export const Profile = () => {
     const {logout} = useAuth();
     const navigate = useNavigate();
-    const {displayName, cashValue, stockValue, portfolioValue} = useCurrentUser();
+    const {userData} = useUserData();
 
     const logoutUser = () => {
-        logout().then(() => {
-                navigate('/login');
-            }
-        )
+        logout()
     }
 
     const deleteUser = () => {
@@ -30,7 +27,7 @@ export const Profile = () => {
             <NavBar/>
             <div className={"container mx-auto w-10/12"}>
                 <div className={"text-5xl font-bold mb-4"}>
-                    {displayName.firstName} {displayName.lastName}
+                    {userData!.firstName} {userData!.lastName}
                 </div>
 
                 <div className="flex gap-2 text-black">
