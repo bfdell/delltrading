@@ -8,10 +8,10 @@ import {PercentChangeFormatter} from "../../shared/StockComponents";
 import {StockTickerData} from "../../shared/StockUtils";
 import {USDollar} from "../../shared/StockUtils";
 
-//todo: render continuation dots to show there is more to scroll down (only render 6 or 7 items at a time)
-//todo: make watch list have a predecfined height/seklotn while loading
+//todo: make watch list have a predefined height/skeleton while loading
+//todo: reorderable thing next to watch list that lets you drag list around
 export const WatchList = () => {
-    const {watchList, watchListLoading, pendingNewTicker, addTicker, deleteTicker} = useWatchList();
+    const {watchList, watchListLoading, addTicker, deleteTicker} = useWatchList();
     const [formOpen, setFormOpen] = useState(false);
     const [formError, setFormError] = useState(false);
     const [searchDuplicate, setSearchDuplicate] = useState(false);
@@ -42,11 +42,8 @@ export const WatchList = () => {
             addTicker(ticker).then(() => {
                 closeForm();
             }).catch((err) => {
-                // if (err.code === 404) {
-                    //if we just failed to add a new invalid ticker display error message
-                    setFormError(true);
-                    setSearchDuplicate(false);
-                // }
+                setFormError(true);
+                setSearchDuplicate(false);
             });
         }
     }
@@ -66,8 +63,6 @@ export const WatchList = () => {
                                           submitForm={submitForm}/>}
 
 
-            {/*pending ticker loading sign goes on top, while the regular one is on the bottom*/}
-            {pendingNewTicker && (<WatchListLoader/>)}
             <div className={"pl-6"}>
                 {watchList.map((listItem, index) => {
                     return <div key={`cardcontainer${index}`}>
@@ -148,7 +143,6 @@ const WatchListSearch = ({closeForm, submitForm, formError, searchDuplicate}: {
     );
 }
 
-//todo: maybe add icon, percent thing and if it goes up or down
 const WatchListCard = ({stonk, deleteTicker}: {
     stonk: StockTickerData
     deleteTicker: Function

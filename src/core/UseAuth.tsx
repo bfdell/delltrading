@@ -1,6 +1,6 @@
 import {axios} from "./UseAxiosApi";
-import {useLocation, useNavigate} from "react-router-dom";
-import Axios, {AxiosResponse} from "axios";
+import {useNavigate} from "react-router-dom";
+import {AxiosResponse} from "axios";
 
 
 //todo: user provider set and update after create user or sign in
@@ -38,9 +38,6 @@ export const useAuth = () => {
             password: password
         }).then((res: AxiosResponse<UserResponse, any>) => {
             localStorage.setItem(process.env.REACT_APP_JWT_KEY as string, res.data.Authorization)
-            // console.log(res.data.Authorization)
-            // console.log(res.data)
-            // console.log(res);
             return true;
         }).catch((err) => {
             return false;

@@ -1,6 +1,5 @@
 import React, {useMemo, useCallback} from 'react';
 import {AreaClosed, Line, Bar} from '@visx/shape';
-import appleStock, {AppleStock} from '@visx/mock-data/lib/mocks/appleStock';
 import {curveMonotoneX} from '@visx/curve';
 import {GridRows, GridColumns} from '@visx/grid';
 import {scaleTime, scaleLinear} from '@visx/scale';
@@ -14,7 +13,6 @@ import {timeFormat} from '@visx/vendor/d3-time-format';
 type MyStock = { day: string, value: number }
 type TooltipData = MyStock;
 
-// const stock = appleStock.slice(800);
 const stock: MyStock[] = [
     {day: '2010-10-28T07:00:00.000Z', value: 15.4},
     {day: '2010-10-29T07:00:00.000Z', value: 22.7},
@@ -45,9 +43,6 @@ const tooltipStyles = {
 const formatDate = timeFormat("%b %d, '%y");
 
 // accessors
-// const getDate = (d: AppleStock) => new Date(d.date);
-// const getStockValue = (d: AppleStock) => d.close;
-// const bisectDate = bisector<AppleStock, Date>((d) => new Date(d.date)).left;
 const getDate = (d: MyStock) => new Date(d.day);
 const getStockValue = (d: MyStock) => d.value;
 const bisectDate = bisector<MyStock, Date>((d) => new Date(d.day)).left;
@@ -56,12 +51,6 @@ export type AreaProps = {
     width: number;
     height: number;
     margin?: { top: number; right: number; bottom: number; left: number };
-};
-
-export const StockGraph = () => {
-    return (
-        <></>
-    );
 };
 
 export const TestGraph = withTooltip<AreaProps, TooltipData>(

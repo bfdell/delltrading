@@ -4,22 +4,17 @@ import {StockAsset, usePortfolio} from "./UsePortfolio";
 import {USDollar} from "../../shared/StockUtils";
 import {PercentChangeFormatter} from "../../shared/StockComponents";
 import {parseTickerData, StockTickerData} from "../../shared/StockUtils";
-import {useCurrentUser, useUserData} from "../../core/useCurrentUser";
+import {useUserData} from "../../core/UseUserData";
 import {axios} from "../../core/UseAxiosApi";
 
-export const TransactionForms = () => {
-
-}
 // todo MAX VALUE nan for when the amount is 0
 //todo Add skeleton (when you buy stock it will go here for empty table
 //todo loading skeleton for name instead of undefined
-
 export const BuyStockForm = () => {
     const [searchInput, setSearchInput] = useState<string>('');
     const [errorMessage, setErrorMessage] = useState(false);
     const [unknownError, setUnknownError] = useState(false);
     const [loadingData, setLoadingData] = useState(false);
-    //todo make error message dissapear when focus is lsot
     const [stockData, setStockData] = useState<StockTickerData | null>(null);
     const {userData, updateAfterBuy} = useUserData();
     const cashValue = userData.cashValue;
@@ -66,13 +61,14 @@ export const BuyStockForm = () => {
             <label className={`${border} input input-bordered bg-gray-300 flex items-center gap-2`}>
                 <input type="text" value={searchInput} className={"grow"} placeholder="Stock Ticker" maxLength={20}
                        onChange={(e) => {
-                           setSearchInput(e.currentTarget.value);;
+                           setSearchInput(e.currentTarget.value);
                        }}
                        onKeyDown={(keyEvent: React.KeyboardEvent<HTMLInputElement>) => {
                            if (keyEvent.key === "Enter" && searchInput !== '' && stockData?.ticker !== searchInput.toUpperCase()) {
                                searchTicker();
                            }
-                       }}/>
+                       }}
+                />
                 <MagnifyingGlassIcon onClick={() => {
                     if (searchInput !== '' && stockData?.ticker !== searchInput.toUpperCase()) {
                         searchTicker()
@@ -138,7 +134,7 @@ export const SellStockForm = () => {
     const [sharesToSell, setSharesToSell] = useState(0);
     const {portfolio, sellStock} = usePortfolio();
     const [pastLimit, setPastLimit] = useState(false);
-    const {userData, updateAfterSell} = useUserData();
+    const {updateAfterSell} = useUserData();
     const [selectedValue, setSelectedValue] = useState("default");
 
     const border = (pastLimit) ? 'border-2 border-solid border-red-600 focus-within:border-2 focus-within:border-solid' : '';

@@ -12,7 +12,7 @@ export const makeAxiosApi = () => {
         console.log("REQUEST ERROR OCCURRED")
         return Promise.reject(error);
     });
-//FIX SCROLLL
+
     // axios.interceptors.response.use((response) => {
     //     console.log(response)
     //     return response
