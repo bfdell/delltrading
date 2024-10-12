@@ -14,42 +14,37 @@ export const usePortfolioGraph = () => {
     const [graphData, setGraphData] = useState<GraphAsset[]>([])
     const [range, setRange] = useState("week")
 
-
-    //TODO: clean this up
     useEffect(() => {
-        const graphArr: GraphAsset[] = [...graphData]
-        graphArr.push({
-            time: '2024-10-07',
-            stockVal: userState.userData.stockValue,
-            cashVal: userState.userData.cashValue
-        });
-        setGraphData(graphArr);
-    }, [userState]);
+        if (!userState.userLoading) {
+            axios.get('portfolio/graph', {
+                params: {
+                    range: range
+                }
+            }).then((res) => {
+                console.log(res);
 
-    useEffect(() => {
-        axios.get('portfolio/graph', {
-            params: {
-                range: range
-            }
-        }).then((res) => {
-            console.log(res);
-
-            const dataArr: any[] = res.data
-            const graphArr: GraphAsset[] = []
-            dataArr.forEach((asset) => {
-                graphArr.push({
-                    time: asset.date,
-                    stockVal: asset.stock_assets,
-                    cashVal: asset.cash,
+                const dataArr: any[] = res.data
+                const graphArr: GraphAsset[] = []
+                dataArr.forEach((asset) => {
+                    graphArr.push({
+                        time: asset.date,
+                        stockVal: asset.stock_assets,
+                        cashVal: asset.cash,
+                    })
                 })
+                graphArr.push({
+                    time: new Date().toLocaleDateString('en-CA'),
+                    stockVal: userState.userData.stockValue,
+                    cashVal: userState.userData.cashValue
+                });
+                setGraphData(graphArr)
+                console.log(graphArr)
+            }).catch((err) => {
+                console.log("failed to retrieve graphs", err)
             })
-            setGraphData(graphArr)
-            console.log(graphArr)
-        }).catch((err) => {
-            console.log("failed to retrieve graphs", err)
-        })
 
-    }, [range]);
+        }
+    }, [userState.userLoading, userState, range]);
 
     return {
         graphData,
