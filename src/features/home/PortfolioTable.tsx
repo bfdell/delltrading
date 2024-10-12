@@ -1,5 +1,5 @@
 import {USDollar} from "../../shared/StockUtils";
-import React, {useEffect} from "react";
+import React from "react";
 import {StockAsset, usePortfolio} from "./UsePortfolio";
 import {BuyStockForm, SellStockForm} from "./TransactionForms";
 import {PercentChangeFormatter} from "../../shared/StockComponents";
@@ -7,8 +7,7 @@ import {PercentChangeFormatter} from "../../shared/StockComponents";
 
 //todo: have sticy bar that is at the top whenever your scroll past the tour stock sign
 export const PortfolioTable = () => {
-    const {portfolio} = usePortfolio();
-    //TODO ADD UPDATER
+    const {portfolio, portfolioLoading} = usePortfolio();
     return (
         <div className={"basis-4/5 mt-6"}>
 
@@ -59,7 +58,7 @@ export const PortfolioTable = () => {
                         return <StonkRow index={index} key={listItem.ticker} stonk={listItem}/>
                     })}
 
-                    {/*{portfolioLoading && <PortfolioLoadingIndicator/>}*/}
+                    {portfolioLoading && <PortfolioLoadingIndicator/>}
 
                     {/*Hard coded values before database was added*/}
                     {/*<StonkRow index={0} ticker={"GOOG"} name={"Alphabet"} shares={23} price={420.69}/>*/}
@@ -120,6 +119,7 @@ const PortfolioLoadingIndicator = () => {
     }
     return <>{skeletons} </>
 }
+
 const TableSkeleton = ({
                            key
                        }: {

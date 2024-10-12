@@ -2,7 +2,7 @@ import {NavBar} from "../../shared/NavBar";
 import {PropsWithChildren, useRef} from "react";
 import {useAuth} from "../../core/UseAuth";
 import {useNavigate} from "react-router-dom";
-import {useCurrentUser, useUserData} from "../../core/useCurrentUser";
+import {useUserData} from "../../core/UseUserData";
 
 export const Profile = () => {
     const {logout} = useAuth();

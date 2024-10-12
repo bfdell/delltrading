@@ -1,7 +1,7 @@
 import {useNavigate} from "react-router-dom";
 import {PropsWithChildren} from "react";
 import {UserIcon} from "@heroicons/react/24/solid";
-import {useCurrentUser, useUserData} from "../core/useCurrentUser";
+import {useUserData} from "../core/UseUserData";
 
 //todo: ADD DIFFERNT BACKGROUND COLOR TO SHOW ACTIVE TAB...
 export const NavBar = () => {

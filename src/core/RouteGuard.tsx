@@ -1,8 +1,7 @@
-// import * as firebase from "firebase/compat";
 import {useLocation, useNavigate} from "react-router-dom";
 import React, {PropsWithChildren, useCallback, useEffect, useState} from "react";
 import {useAuth} from "./UseAuth";
-import {UserDataContext, UserDataProvider} from "./useCurrentUser";
+import {UserDataProvider} from "./UseUserData";
 
 export function RouteGuard({children}: PropsWithChildren) {
     const navigate = useNavigate();

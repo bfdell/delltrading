@@ -1,25 +1,22 @@
 import {NavBar} from "../../shared/NavBar";
-// import {CSSProperties} from "react";
-import {PlusIcon} from "@heroicons/react/24/solid";
-import {XCircleIcon} from "@heroicons/react/24/solid";
-import {SetStateAction, useState} from "react";
 import {WatchList} from "./WatchList";
 import {PortfolioTable} from "./PortfolioTable";
-import {useUserData} from "../../core/useCurrentUser";
+import {useUserData} from "../../core/UseUserData";
 import {PortfolioGraph} from "./PortfolioGraph";
 import {USDollar} from "../../shared/StockUtils";
 
 export const Home = () => {
-    const {userData, updateAfterSell} = useUserData();
+    const {userData} = useUserData();
 
     return (
         <div id={"Home"}>
             <NavBar/>
             <div className={"my-4 container mx-auto w-11/12"}>
                 {/*todo make numbers a skeleton while they load*/}
-                <PortfolioStatusBar portfolioValue={userData.portfolioValue != null ? userData.portfolioValue : 0} stockValue={userData.stockValue != null ? userData.stockValue : 0} cashValue={userData.cashValue != null ? userData.cashValue : 0}/>
+                <PortfolioStatusBar portfolioValue={userData.portfolioValue != null ? userData.portfolioValue : 0}
+                                    stockValue={userData.stockValue != null ? userData.stockValue : 0}
+                                    cashValue={userData.cashValue != null ? userData.cashValue : 0}/>
                 <div className={"mt-8 flex flex-row gap-4"}>
-                    {/*<HomePortfolioChart/>*/}
                     <PortfolioGraph/>
                     <WatchList/>
                     {/*<div*/}

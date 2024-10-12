@@ -1,8 +1,6 @@
-import {useState, useEffect, useMemo, useRef} from 'react';
-import {getLogoLink, StockTickerData} from "../../shared/StockUtils";
-import {useCurrentUser, useUserData} from "../../core/useCurrentUser";
+import {StockTickerData} from "../../shared/StockUtils";
+import {useUserData} from "../../core/UseUserData";
 import {axios} from "../../core/UseAxiosApi";
-
 
 export type StockAsset = {
     name: string,
@@ -21,16 +19,19 @@ export const usePortfolio = () => {
             console.log(res);
         })
     }
+
     const sellStock = async (stock: StockAsset, shares: number) => {
         return axios.post('portfolio/sell', {ticker: stock.ticker, shares: shares}).then((res) => {
             console.log(res);
         })
     }
 
-    let portfolio = userState.userData.portfolio;
+    const portfolio = userState.userData.portfolio;
+    const portfolioLoading = userState.userLoading;
     return {
         buyStock,
         sellStock,
         portfolio,
+        portfolioLoading
     }
 }

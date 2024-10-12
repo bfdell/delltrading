@@ -1,30 +1,7 @@
-//todo: Move usename and password stuff to here
-//todo: change name of this file to useDataContext
-import {createContext, PropsWithChildren, useContext, useEffect, useMemo, useState} from "react";
-import {StockAsset, usePortfolio} from "../features/home/UsePortfolio";
+import {createContext, PropsWithChildren, useContext, useEffect, useState} from "react";
+import {StockAsset} from "../features/home/UsePortfolio";
 import {axios} from "./UseAxiosApi";
-import {getLogoLink} from "../shared/StockUtils";
-
-type UserNameInfo = {
-    firstName: string,
-    lastName: string
-}
-
-export const useCurrentUser = () => {
-
-    const [displayName, setDisplayName] = useState<UserNameInfo>({firstName: '', lastName: ''});
-    const [cashValue, setCashValue] = useState<number>(0);
-    const [stockValue, setStockValue] = useState<number>(0);
-    const [portfolioValue, setPortfolioValue] = useState<number>(0);
-    const [portfolioUpdated, setPortfolioUpdated] = useState(false);
-    const userApiPath = "users";
-
-    useEffect(() => {
-        return () => console.log('user info unmounted');
-    }, []);
-
-    return {displayName, cashValue, stockValue, portfolioValue};
-}
+import {parsePortfolioTickerData} from "../shared/StockUtils";
 
 type UserData = {
     firstName: string,
@@ -39,22 +16,14 @@ type UserContext = {
     userData: UserData
     updateAfterSell: Function,
     updateAfterBuy: Function,
+    userLoading: boolean
 }
 
 export const UserDataContext = createContext<UserContext>({} as UserContext,);
-const parsePortfolioTickerData = (rawTickerData: any, shares: number): StockAsset => {
-    return {
-        ticker: rawTickerData.symbol,
-        name: rawTickerData.name,
-        shares: shares,
-        price: rawTickerData.close,
-        percentChange: rawTickerData.percent_change,
-        logoUrl: getLogoLink(rawTickerData.symbol)
-    };
-}
-//Create a provider
+
 export const UserDataProvider = ({children}: PropsWithChildren) => {
     const [userState, setUserState] = useState<UserData>({} as UserData);
+    const [dataLoading, setDataLoading] = useState(true);
 
     const updateAfterSell = (asset: StockAsset, shares: number) => {
         let profit = asset.price * shares;
@@ -126,6 +95,7 @@ export const UserDataProvider = ({children}: PropsWithChildren) => {
                     portfolioValue: stockTotal + resData.cash,
                     portfolio: portfolioData
                 } as UserData);
+                setDataLoading(false);
 
             } catch (error) {
                 console.log("error retrieving user data", error)
@@ -141,6 +111,7 @@ export const UserDataProvider = ({children}: PropsWithChildren) => {
             userData: userState,
             updateAfterSell: updateAfterSell,
             updateAfterBuy: updateAfterBuy,
+            userLoading: dataLoading
         }}>
             {children}
         </UserDataContext.Provider>

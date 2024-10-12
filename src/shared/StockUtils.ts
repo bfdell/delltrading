@@ -1,5 +1,4 @@
-
-import exp from "node:constants";
+import {StockAsset} from "../features/home/UsePortfolio";
 
 export type StockTickerData = {
     ticker: string,
@@ -12,6 +11,17 @@ export const parseTickerData = (rawTickerData: any): StockTickerData => {
     return {
         ticker: rawTickerData.symbol,
         name: rawTickerData.name,
+        price: rawTickerData.close,
+        percentChange: rawTickerData.percent_change,
+        logoUrl: getLogoLink(rawTickerData.symbol)
+    };
+}
+
+export const parsePortfolioTickerData = (rawTickerData: any, shares: number): StockAsset => {
+    return {
+        ticker: rawTickerData.symbol,
+        name: rawTickerData.name,
+        shares: shares,
         price: rawTickerData.close,
         percentChange: rawTickerData.percent_change,
         logoUrl: getLogoLink(rawTickerData.symbol)
