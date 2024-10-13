@@ -1,4 +1,4 @@
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useRef} from 'react';
 import {useUserData} from "../../core/UseUserData";
 import {axios} from "../../core/UseAxiosApi";
 
@@ -8,11 +8,18 @@ export type GraphAsset = {
     cashVal: number
 }
 
-//todo: loading screen while graph is being updated
 export const usePortfolioGraph = () => {
     const userState = useUserData();
     const [graphData, setGraphData] = useState<GraphAsset[]>([])
     const [range, setRange] = useState("week")
+    const currentRange = useRef("week")
+    const [graphLoading, setGraphLoading] = useState(true);
+
+    const updateRange = (newRange: string) => {
+        setRange(() => newRange);
+        currentRange.current = newRange;
+        setGraphLoading(() => true);
+    }
 
     useEffect(() => {
         if (!userState.userLoading) {
@@ -37,18 +44,24 @@ export const usePortfolioGraph = () => {
                     stockVal: userState.userData.stockValue,
                     cashVal: userState.userData.cashValue
                 });
-                setGraphData(graphArr)
-                console.log(graphArr)
+                //only update graph is this request is the most recent one
+                //this makes sure that if we change the range multiple times before a request can finish,
+                //it only updates once.
+                if (currentRange.current === range) {
+                    setGraphData(graphArr)
+                    console.log(graphArr)
+                    setGraphLoading(false)
+                }
             }).catch((err) => {
                 console.log("failed to retrieve graphs", err)
             })
-
         }
     }, [userState.userLoading, userState, range]);
 
     return {
         graphData,
         range,
-        setRange,
+        updateRange,
+        graphLoading
     }
 }
